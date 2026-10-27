@@ -22,12 +22,15 @@ char *newtemp(void)
     char *str;
 }
 
-%token WHILE IF ASSIGN MINUS LP RP LB RB SEMI ADD MUL DIV INVALID
+%token WHILE IF ELSE ASSIGN MINUS LP RP LB RB SEMI ADD MUL DIV INVALID
 %token <str> ID NUM RELOP
 %type <str> exp term factor
 
 %left ADD MINUS
 %left MUL DIV
+
+%nonassoc IFX
+%nonassoc ELSE
 
 %%
 
@@ -65,6 +68,23 @@ statement
       {
           printf("L%d:\n", label + 1);
           label += 2;
+      } %prec IFX
+    | IF LP exp RELOP exp RP
+      {
+          int falseLabel = label++;
+          int endLabel = label++;
+          printf("ifFalse %s %s %s goto L%d\n",
+                 $3, $4, $5, falseLabel);
+          /* Labels are stored below for this simple example. */
+      }
+      LB statements RB ELSE
+      {
+          printf("goto L%d\n", label);
+          printf("L%d:\n", label - 1);
+      }
+      LB statements RB
+      {
+          printf("L%d:\n", label);
       }
     ;
 
@@ -114,18 +134,9 @@ term
     ;
 
 factor
-    : ID
-      {
-          $$ = $1;
-      }
-    | NUM
-      {
-          $$ = $1;
-      }
-    | LP exp RP
-      {
-          $$ = $2;
-      }
+    : ID  { $$ = $1; }
+    | NUM { $$ = $1; }
+    | LP exp RP { $$ = $2; }
     ;
 
 %%

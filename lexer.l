@@ -8,6 +8,7 @@
 %%
 "while"             { return WHILE; }
 "if"                { return IF; }
+"else"   { return ELSE; }
 
 "="                 { return ASSIGN; }
 "+"                 { return ADD; }
